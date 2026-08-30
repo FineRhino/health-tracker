@@ -37,7 +37,15 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
               <Input id="email" name="email" type="email" placeholder="you@example.com" required />
             </Field>
             <Field>
-              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <div className="flex items-center justify-between">
+                <FieldLabel htmlFor="password">Password</FieldLabel>
+                <Link
+                  href="/forgot-password"
+                  className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <Input id="password" name="password" type="password" required />
             </Field>
             {state?.error && <FieldError>{state.error}</FieldError>}

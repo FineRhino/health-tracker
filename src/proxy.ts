@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
-const publicRoutes = ["/login", "/register"];
+const publicRoutes = ["/login", "/register", "/forgot-password"];
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const { pathname } = req.nextUrl;
   const isPublicRoute = publicRoutes.includes(pathname);
+  const isResetPasswordRoute = pathname.startsWith("/reset-password/");
+
+  if (isResetPasswordRoute) {
+    return;
+  }
 
   if (!isLoggedIn && !isPublicRoute) {
     return NextResponse.redirect(new URL("/login", req.nextUrl));
