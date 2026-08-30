@@ -8,25 +8,28 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 
-const chartConfig = {
-  weightLbs: {
-    label: "Weight (lbs)",
-    color: "var(--chart-1)",
-  },
-} satisfies ChartConfig;
-
-export function WeightTrendChart({
+export function MetricTrendChart({
   data,
+  metricKey,
+  label,
 }: {
-  data: { date: string; weightLbs: number | null }[];
+  data: Record<string, number | string | null>[];
+  metricKey: string;
+  label: string;
 }) {
-  if (data.length === 0) {
+  const hasValues = data.some((row) => row[metricKey] !== null && row[metricKey] !== undefined);
+
+  if (!hasValues) {
     return (
       <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-        No biometric entries yet. Log your first reading to see a trend.
+        No data for this metric yet.
       </div>
     );
   }
+
+  const chartConfig = {
+    [metricKey]: { label, color: "var(--chart-1)" },
+  } satisfies ChartConfig;
 
   return (
     <ChartContainer config={chartConfig} className="h-64 w-full">
@@ -47,9 +50,9 @@ export function WeightTrendChart({
         />
         <ChartTooltip content={<ChartTooltipContent />} />
         <Line
-          dataKey="weightLbs"
+          dataKey={metricKey}
           type="monotone"
-          stroke="var(--color-weightLbs)"
+          stroke={`var(--color-${metricKey})`}
           strokeWidth={2}
           dot={false}
           connectNulls
