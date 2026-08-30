@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
 import { createBiometricEntry, type BiometricFormValues } from "./actions";
+import { BIOMETRIC_FIELDS } from "./fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,27 +27,11 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-const numericFields: { name: keyof BiometricFormValues; label: string; unit?: string }[] = [
-  { name: "weightLbs", label: "Weight", unit: "lbs" },
-  { name: "bmi", label: "BMI" },
-  { name: "bodyFatPercent", label: "Body fat", unit: "%" },
-  { name: "bodyFatMassLbs", label: "Body fat mass", unit: "lbs" },
-  { name: "leanMassLbs", label: "Lean mass", unit: "lbs" },
-  { name: "leanMassPercent", label: "Lean mass", unit: "%" },
-  { name: "subcutaneousFatMassLbs", label: "Subcutaneous fat mass", unit: "lbs" },
-  { name: "subcutaneousFatPercent", label: "Subcutaneous fat", unit: "%" },
-  { name: "visceralFatIndex", label: "Visceral fat index" },
-  { name: "skeletalMuscleMassLbs", label: "Skeletal muscle mass", unit: "lbs" },
-  { name: "skeletalMassLbs", label: "Skeletal mass", unit: "lbs" },
-  { name: "boneMineralContentLbs", label: "Bone mineral content", unit: "lbs" },
-  { name: "bodyWaterPercent", label: "Body water", unit: "%" },
-  { name: "extracellularWaterLbs", label: "Extracellular water", unit: "lbs" },
-  { name: "intracellularWaterLbs", label: "Intracellular water", unit: "lbs" },
-  { name: "mineralMassLbs", label: "Mineral mass", unit: "lbs" },
-  { name: "basalMetabolicRate", label: "BMR", unit: "kcal" },
-  { name: "metabolicAge", label: "Metabolic age", unit: "yrs" },
-  { name: "bodyCellMassLbs", label: "Body cell mass", unit: "lbs" },
-];
+const numericFields = BIOMETRIC_FIELDS as {
+  key: keyof BiometricFormValues;
+  label: string;
+  unit?: string;
+}[];
 
 export function BiometricForm() {
   const [open, setOpen] = useState(false);
@@ -94,17 +79,17 @@ export function BiometricForm() {
               <FieldLegend variant="label">Measurements</FieldLegend>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {numericFields.map((f) => (
-                  <Field key={f.name}>
-                    <FieldLabel htmlFor={f.name}>
+                  <Field key={f.key}>
+                    <FieldLabel htmlFor={f.key}>
                       {f.label}
                       {f.unit && <span className="text-muted-foreground"> ({f.unit})</span>}
                     </FieldLabel>
                     <Input
-                      id={f.name}
+                      id={f.key}
                       type="number"
                       step="any"
                       inputMode="decimal"
-                      {...register(f.name)}
+                      {...register(f.key)}
                     />
                   </Field>
                 ))}

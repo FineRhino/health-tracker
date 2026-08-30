@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import { requireUserId } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import {
@@ -7,16 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { BiometricForm } from "./biometric-form";
-import { DeleteEntryButton } from "./delete-entry-button";
+import { BiometricsTable } from "./biometrics-table";
 import { ImportDialog } from "./import-dialog";
 
 export default async function BiometricsPage() {
@@ -53,34 +44,7 @@ export default async function BiometricsPage() {
               No entries yet. Log your first reading above.
             </p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Weight</TableHead>
-                  <TableHead>BMI</TableHead>
-                  <TableHead>Body fat %</TableHead>
-                  <TableHead>Lean mass</TableHead>
-                  <TableHead>Body water %</TableHead>
-                  <TableHead className="w-10"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {entries.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell>{format(entry.recordedAt, "MMM d, yyyy h:mm a")}</TableCell>
-                    <TableCell>{entry.weightLbs?.toFixed(1) ?? "—"}</TableCell>
-                    <TableCell>{entry.bmi?.toFixed(1) ?? "—"}</TableCell>
-                    <TableCell>{entry.bodyFatPercent?.toFixed(1) ?? "—"}</TableCell>
-                    <TableCell>{entry.leanMassLbs?.toFixed(1) ?? "—"}</TableCell>
-                    <TableCell>{entry.bodyWaterPercent?.toFixed(1) ?? "—"}</TableCell>
-                    <TableCell>
-                      <DeleteEntryButton id={entry.id} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <BiometricsTable entries={entries} />
           )}
         </CardContent>
       </Card>
