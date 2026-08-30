@@ -26,6 +26,7 @@ model User {
   biometricEntries    BiometricEntry[]
   workouts            Workout[]
   foodEntries         FoodEntry[]
+  dailyLogs           DailyLog[]
   passwordResetTokens PasswordResetToken[]
 
   createdAt DateTime @default(now())
@@ -183,4 +184,31 @@ model FoodEntry {
   updatedAt DateTime @updatedAt
 
   @@index([userId, date])
+}
+
+model DailyLog {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date DateTime
+
+  calories      Float?
+  fatG          Float?
+  saturatedFatG Float?
+  carbsG        Float?
+  proteinG      Float?
+  fiberG        Float?
+  alcoholG      Float?
+
+  fastingHours Float?
+  bloatRating  Int?
+  energyRating Int?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date])
 }

@@ -12,35 +12,49 @@ import {
 } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { DashboardMetrics } from "./dashboard-metrics";
+import { NutritionMetrics } from "./nutrition-metrics";
 
 export default async function DashboardPage() {
   const userId = await requireUserId();
 
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
 
-  const [lastTwoEntries, allEntries, weekWorkouts, weekFood] = await Promise.all([
-    prisma.biometricEntry.findMany({
-      where: { userId },
-      orderBy: { recordedAt: "desc" },
-      take: 2,
-      select: { recordedAt: true, weightLbs: true, bodyFatPercent: true, leanMassLbs: true, bmi: true },
-    }),
-    prisma.biometricEntry.findMany({
-      where: { userId },
-      orderBy: { recordedAt: "asc" },
-      select: { recordedAt: true, weightLbs: true, bodyFatPercent: true, leanMassLbs: true, bmi: true },
-    }),
-    prisma.workout.findMany({
-      where: { userId, date: { gte: weekStart } },
-      select: { caloriesBurned: true },
-    }),
-    prisma.foodEntry.findMany({
-      where: { userId, date: { gte: weekStart } },
-      select: { calories: true },
-    }),
-  ]);
+  const [lastTwoEntries, allEntries, lastTwoDailyLogs, allDailyLogs, weekWorkouts, weekFood] =
+    await Promise.all([
+      prisma.biometricEntry.findMany({
+        where: { userId },
+        orderBy: { recordedAt: "desc" },
+        take: 2,
+        select: { recordedAt: true, weightLbs: true, bodyFatPercent: true, leanMassLbs: true, bmi: true },
+      }),
+      prisma.biometricEntry.findMany({
+        where: { userId },
+        orderBy: { recordedAt: "asc" },
+        select: { recordedAt: true, weightLbs: true, bodyFatPercent: true, leanMassLbs: true, bmi: true },
+      }),
+      prisma.dailyLog.findMany({
+        where: { userId },
+        orderBy: { date: "desc" },
+        take: 2,
+        select: { date: true, calories: true, fatG: true, carbsG: true, proteinG: true, fiberG: true, alcoholG: true },
+      }),
+      prisma.dailyLog.findMany({
+        where: { userId },
+        orderBy: { date: "asc" },
+        select: { date: true, calories: true, fatG: true, carbsG: true, proteinG: true, fiberG: true, alcoholG: true },
+      }),
+      prisma.workout.findMany({
+        where: { userId, date: { gte: weekStart } },
+        select: { caloriesBurned: true },
+      }),
+      prisma.foodEntry.findMany({
+        where: { userId, date: { gte: weekStart } },
+        select: { calories: true },
+      }),
+    ]);
 
   const [latestEntry, previousEntry] = lastTwoEntries;
+  const [latestDailyLog, previousDailyLog] = lastTwoDailyLogs;
 
   const history = allEntries.map((entry) => ({
     date: entry.recordedAt,
@@ -48,6 +62,16 @@ export default async function DashboardPage() {
     bodyFatPercent: entry.bodyFatPercent,
     leanMassLbs: entry.leanMassLbs,
     bmi: entry.bmi,
+  }));
+
+  const nutritionHistory = allDailyLogs.map((entry) => ({
+    date: entry.date,
+    calories: entry.calories,
+    fatG: entry.fatG,
+    carbsG: entry.carbsG,
+    proteinG: entry.proteinG,
+    fiberG: entry.fiberG,
+    alcoholG: entry.alcoholG,
   }));
 
   const weekCaloriesBurned = weekWorkouts.reduce((sum, w) => sum + (w.caloriesBurned ?? 0), 0);
@@ -80,6 +104,17 @@ export default async function DashboardPage() {
       )}
 
       <DashboardMetrics latest={latestEntry ?? {}} previous={previousEntry ?? null} history={history} />
+
+      <div>
+        <h2 className="font-heading text-lg font-semibold">Nutrition</h2>
+        <p className="text-sm text-muted-foreground">Daily totals from your Daily Log.</p>
+      </div>
+
+      <NutritionMetrics
+        latest={latestDailyLog ?? {}}
+        previous={previousDailyLog ?? null}
+        history={nutritionHistory}
+      />
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>

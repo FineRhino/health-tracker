@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   Apple,
+  ClipboardList,
   Dumbbell,
   HeartPulse,
   LayoutDashboard,
@@ -32,6 +33,7 @@ const navItems = [
   { title: "Biometrics", url: "/biometrics", icon: HeartPulse },
   { title: "Workouts", url: "/workouts", icon: Dumbbell },
   { title: "Food", url: "/food", icon: Apple },
+  { title: "Daily Log", url: "/daily-log", icon: ClipboardList },
 ];
 
 export function AppSidebar({
