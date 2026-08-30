@@ -19,10 +19,19 @@ import { Badge } from "@/components/ui/badge";
 import { WorkoutForm } from "./workout-form";
 import { DeleteEntryButton } from "./delete-entry-button";
 
-const typeLabels: Record<string, string> = {
-  STRENGTH: "Strength",
-  CARDIO: "Cardio",
-  OTHER: "Other",
+const typeStyles: Record<string, { label: string; className: string }> = {
+  STRENGTH: {
+    label: "Strength",
+    className: "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-400",
+  },
+  CARDIO: {
+    label: "Cardio",
+    className: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-400",
+  },
+  OTHER: {
+    label: "Other",
+    className: "bg-sky-100 text-sky-800 dark:bg-sky-500/15 dark:text-sky-400",
+  },
 };
 
 export default async function WorkoutsPage() {
@@ -72,7 +81,9 @@ export default async function WorkoutsPage() {
                   <TableRow key={workout.id}>
                     <TableCell>{format(workout.date, "MMM d, yyyy")}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{typeLabels[workout.type]}</Badge>
+                      <Badge variant="secondary" className={typeStyles[workout.type].className}>
+                        {typeStyles[workout.type].label}
+                      </Badge>
                     </TableCell>
                     <TableCell>{workout.name}</TableCell>
                     <TableCell>

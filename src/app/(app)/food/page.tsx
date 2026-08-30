@@ -20,11 +20,23 @@ import { Badge } from "@/components/ui/badge";
 import { FoodForm } from "./food-form";
 import { DeleteEntryButton } from "./delete-entry-button";
 
-const mealLabels: Record<string, string> = {
-  BREAKFAST: "Breakfast",
-  LUNCH: "Lunch",
-  DINNER: "Dinner",
-  SNACK: "Snack",
+const mealStyles: Record<string, { label: string; className: string }> = {
+  BREAKFAST: {
+    label: "Breakfast",
+    className: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-400",
+  },
+  LUNCH: {
+    label: "Lunch",
+    className: "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-400",
+  },
+  DINNER: {
+    label: "Dinner",
+    className: "bg-violet-100 text-violet-800 dark:bg-violet-500/15 dark:text-violet-400",
+  },
+  SNACK: {
+    label: "Snack",
+    className: "bg-sky-100 text-sky-800 dark:bg-sky-500/15 dark:text-sky-400",
+  },
 };
 
 export default async function FoodPage() {
@@ -93,7 +105,9 @@ export default async function FoodPage() {
                     {dayEntries.map((entry) => (
                       <TableRow key={entry.id}>
                         <TableCell>
-                          <Badge variant="secondary">{mealLabels[entry.mealType]}</Badge>
+                          <Badge variant="secondary" className={mealStyles[entry.mealType].className}>
+                            {mealStyles[entry.mealType].label}
+                          </Badge>
                         </TableCell>
                         <TableCell>{entry.name}</TableCell>
                         <TableCell>{entry.calories ?? "—"}</TableCell>

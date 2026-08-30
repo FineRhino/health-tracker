@@ -48,17 +48,17 @@ export function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" render={<Link href="/dashboard" />}>
-              <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <div className="flex size-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
                 <Activity className="size-4" />
               </div>
-              <span className="font-heading font-semibold">Health Tracker</span>
+              <span className="font-heading text-base font-semibold">Health Tracker</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Overview</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
