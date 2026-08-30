@@ -18,6 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { WorkoutForm } from "./workout-form";
 import { DeleteEntryButton } from "./delete-entry-button";
+import { LiftTrends, type ExerciseHistoryPoint, type ExerciseOption } from "./lift-trends";
 
 const typeStyles: Record<string, { label: string; className: string }> = {
   STRENGTH: {
@@ -37,12 +38,43 @@ const typeStyles: Record<string, { label: string; className: string }> = {
 export default async function WorkoutsPage() {
   const userId = await requireUserId();
 
-  const workouts = await prisma.workout.findMany({
-    where: { userId },
-    orderBy: { date: "desc" },
-    take: 100,
-    include: { exercises: true },
-  });
+  const [workouts, exerciseRows] = await Promise.all([
+    prisma.workout.findMany({
+      where: { userId },
+      orderBy: { date: "desc" },
+      take: 100,
+      include: { exercises: true },
+    }),
+    prisma.workoutExercise.findMany({
+      where: { workout: { userId }, weightLbs: { not: null } },
+      select: { name: true, weightLbs: true, workout: { select: { date: true } } },
+      orderBy: { workout: { date: "asc" } },
+    }),
+  ]);
+
+  const perExerciseByDate = new Map<string, Map<string, ExerciseHistoryPoint>>();
+  for (const row of exerciseRows) {
+    if (row.weightLbs === null) continue;
+    const dateKey = format(row.workout.date, "yyyy-MM-dd");
+    let byDate = perExerciseByDate.get(row.name);
+    if (!byDate) {
+      byDate = new Map();
+      perExerciseByDate.set(row.name, byDate);
+    }
+    const existing = byDate.get(dateKey);
+    if (!existing || row.weightLbs > existing.weightLbs) {
+      byDate.set(dateKey, { date: row.workout.date, weightLbs: row.weightLbs });
+    }
+  }
+
+  const liftHistory: Record<string, ExerciseHistoryPoint[]> = {};
+  const liftOptions: ExerciseOption[] = [];
+  for (const [name, byDate] of perExerciseByDate) {
+    const points = [...byDate.values()].sort((a, b) => a.date.getTime() - b.date.getTime());
+    liftHistory[name] = points;
+    liftOptions.push({ name, sessionCount: points.length });
+  }
+  liftOptions.sort((a, b) => b.sessionCount - a.sessionCount);
 
   return (
     <div className="flex flex-col gap-6">
@@ -53,6 +85,8 @@ export default async function WorkoutsPage() {
         </div>
         <WorkoutForm />
       </div>
+
+      <LiftTrends options={liftOptions} history={liftHistory} />
 
       <Card>
         <CardHeader>

@@ -20,7 +20,7 @@ export interface MetricConfig<K extends string> {
   unit?: string;
 }
 
-const PERIODS = [
+export const PERIODS = [
   { key: "30", label: "30D", days: 30, description: "Last 30 days" },
   { key: "90", label: "90D", days: 90, description: "Last 90 days" },
   { key: "180", label: "6M", days: 180, description: "Last 6 months" },
@@ -29,7 +29,7 @@ const PERIODS = [
   { key: "all", label: "All", days: null, description: "All time" },
 ] as const;
 
-type PeriodKey = (typeof PERIODS)[number]["key"];
+export type PeriodKey = (typeof PERIODS)[number]["key"];
 
 type MetricValues<K extends string> = Partial<Record<K, number | null>>;
 
