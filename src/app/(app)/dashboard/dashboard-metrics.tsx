@@ -1,14 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { format, subDays } from "date-fns";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MetricTrendChart } from "./metric-trend-chart";
 
 interface MetricConfig {
@@ -24,7 +27,22 @@ const METRICS: MetricConfig[] = [
   { key: "bmi", label: "BMI" },
 ];
 
+const PERIODS = [
+  { key: "30", label: "30D", days: 30, description: "Last 30 days" },
+  { key: "90", label: "90D", days: 90, description: "Last 90 days" },
+  { key: "180", label: "6M", days: 180, description: "Last 6 months" },
+  { key: "270", label: "9M", days: 270, description: "Last 9 months" },
+  { key: "365", label: "1Y", days: 365, description: "Last year" },
+  { key: "all", label: "All", days: null, description: "All time" },
+] as const;
+
+type PeriodKey = (typeof PERIODS)[number]["key"];
+
 type MetricValues = Partial<Record<MetricConfig["key"], number | null>>;
+
+interface HistoryRow extends MetricValues {
+  date: Date;
+}
 
 function Trend({
   delta,
@@ -63,10 +81,25 @@ export function DashboardMetrics({
 }: {
   latest: MetricValues;
   previous: MetricValues | null;
-  history: Record<string, number | string | null>[];
+  history: HistoryRow[];
 }) {
   const [selectedKey, setSelectedKey] = useState<MetricConfig["key"]>("weightLbs");
+  const [period, setPeriod] = useState<PeriodKey>("90");
   const selected = METRICS.find((m) => m.key === selectedKey)!;
+  const activePeriod = PERIODS.find((p) => p.key === period)!;
+
+  const chartData = useMemo(() => {
+    const cutoff = activePeriod.days !== null ? subDays(new Date(), activePeriod.days) : null;
+    const rows = cutoff ? history.filter((row) => row.date >= cutoff) : history;
+    const longRange = activePeriod.days === null || activePeriod.days > 180;
+    return rows.map((row) => ({
+      date: format(row.date, longRange ? "MMM d, yy" : "MMM d"),
+      weightLbs: row.weightLbs ?? null,
+      bodyFatPercent: row.bodyFatPercent ?? null,
+      leanMassLbs: row.leanMassLbs ?? null,
+      bmi: row.bmi ?? null,
+    }));
+  }, [history, activePeriod]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -119,11 +152,22 @@ export function DashboardMetrics({
       <Card>
         <CardHeader>
           <CardTitle>{selected.label} trend</CardTitle>
-          <CardDescription>Last 90 days</CardDescription>
+          <CardDescription>{activePeriod.description}</CardDescription>
+          <CardAction>
+            <Tabs value={period} onValueChange={(v) => setPeriod(v as PeriodKey)}>
+              <TabsList>
+                {PERIODS.map((p) => (
+                  <TabsTrigger key={p.key} value={p.key}>
+                    {p.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </CardAction>
         </CardHeader>
         <CardContent>
           <MetricTrendChart
-            data={history}
+            data={chartData}
             metricKey={selected.key}
             label={selected.unit ? `${selected.label} (${selected.unit})` : selected.label}
           />

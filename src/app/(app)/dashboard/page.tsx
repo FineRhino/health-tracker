@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { format, startOfWeek, subDays } from "date-fns";
+import { format, startOfWeek } from "date-fns";
 import { Dumbbell, Apple } from "lucide-react";
 import { requireUserId } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -16,10 +16,9 @@ import { DashboardMetrics } from "./dashboard-metrics";
 export default async function DashboardPage() {
   const userId = await requireUserId();
 
-  const ninetyDaysAgo = subDays(new Date(), 90);
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
 
-  const [lastTwoEntries, recentEntries, weekWorkouts, weekFood] = await Promise.all([
+  const [lastTwoEntries, allEntries, weekWorkouts, weekFood] = await Promise.all([
     prisma.biometricEntry.findMany({
       where: { userId },
       orderBy: { recordedAt: "desc" },
@@ -27,7 +26,7 @@ export default async function DashboardPage() {
       select: { recordedAt: true, weightLbs: true, bodyFatPercent: true, leanMassLbs: true, bmi: true },
     }),
     prisma.biometricEntry.findMany({
-      where: { userId, recordedAt: { gte: ninetyDaysAgo } },
+      where: { userId },
       orderBy: { recordedAt: "asc" },
       select: { recordedAt: true, weightLbs: true, bodyFatPercent: true, leanMassLbs: true, bmi: true },
     }),
@@ -43,8 +42,8 @@ export default async function DashboardPage() {
 
   const [latestEntry, previousEntry] = lastTwoEntries;
 
-  const history = recentEntries.map((entry) => ({
-    date: format(entry.recordedAt, "MMM d"),
+  const history = allEntries.map((entry) => ({
+    date: entry.recordedAt,
     weightLbs: entry.weightLbs,
     bodyFatPercent: entry.bodyFatPercent,
     leanMassLbs: entry.leanMassLbs,
