@@ -1,0 +1,174 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- Auth.js models ---
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+
+  accounts  Account[]
+  sessions  Session[]
+
+  biometricEntries BiometricEntry[]
+  workouts         Workout[]
+  foodEntries      FoodEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                       String  @id @default(cuid())
+  userId                   String
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String? @db.Text
+  access_token             String? @db.Text
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String? @db.Text
+  session_state            String?
+  refresh_token_expires_in Int?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// --- App models ---
+
+enum WorkoutType {
+  STRENGTH
+  CARDIO
+  OTHER
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+model BiometricEntry {
+  id     String   @id @default(cuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  recordedAt DateTime @default(now())
+
+  weightLbs                Float?
+  bmi                       Float?
+  bodyFatPercent            Float?
+  bodyFatMassLbs            Float?
+  leanMassLbs               Float?
+  leanMassPercent           Float?
+  subcutaneousFatMassLbs    Float?
+  subcutaneousFatPercent    Float?
+  visceralFatIndex          Float?
+  skeletalMuscleMassLbs     Float?
+  skeletalMassLbs           Float?
+  boneMineralContentLbs     Float?
+  bodyWaterPercent          Float?
+  extracellularWaterLbs     Float?
+  intracellularWaterLbs     Float?
+  mineralMassLbs            Float?
+  basalMetabolicRate        Float?
+  metabolicAge              Int?
+  bodyCellMassLbs           Float?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, recordedAt])
+}
+
+model Workout {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date             DateTime    @default(now())
+  type             WorkoutType @default(STRENGTH)
+  name             String
+  durationMinutes  Int?
+  caloriesBurned   Int?
+  distanceMiles    Float?
+  notes            String?
+
+  exercises WorkoutExercise[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+}
+
+model WorkoutExercise {
+  id        String  @id @default(cuid())
+  workoutId String
+  workout   Workout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+
+  name      String
+  sets      Int?
+  reps      Int?
+  weightLbs Float?
+  notes     String?
+
+  order Int @default(0)
+}
+
+model FoodEntry {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date     DateTime @default(now())
+  mealType MealType @default(BREAKFAST)
+  name     String
+  calories Int?
+  proteinG Float?
+  carbsG   Float?
+  fatG     Float?
+  notes    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+}
