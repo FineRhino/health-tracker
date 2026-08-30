@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { BiometricForm } from "./biometric-form";
 import { DeleteEntryButton } from "./delete-entry-button";
+import { ImportDialog } from "./import-dialog";
 
 export default async function BiometricsPage() {
   const userId = await requireUserId();
@@ -36,7 +37,10 @@ export default async function BiometricsPage() {
             Track weight, body composition, and related measurements.
           </p>
         </div>
-        <BiometricForm />
+        <div className="flex items-center gap-2">
+          <ImportDialog />
+          <BiometricForm />
+        </div>
       </div>
 
       <Card>

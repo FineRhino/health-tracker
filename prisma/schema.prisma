@@ -127,7 +127,7 @@ model BiometricEntry {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([userId, recordedAt])
+  @@unique([userId, recordedAt])
 }
 
 model Workout {
