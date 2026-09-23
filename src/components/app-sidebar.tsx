@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   Apple,
+  BookOpen,
   ClipboardList,
   Dumbbell,
   HeartPulse,
@@ -34,6 +35,7 @@ const navItems = [
   { title: "Workouts", url: "/workouts", icon: Dumbbell },
   { title: "Food", url: "/food", icon: Apple },
   { title: "Daily Log", url: "/daily-log", icon: ClipboardList },
+  { title: "Resources", url: "/resources", icon: BookOpen },
 ];
 
 export function AppSidebar({
@@ -66,7 +68,9 @@ export function AppSidebar({
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton
-                    isActive={pathname === item.url}
+                    isActive={
+                      pathname === item.url || pathname.startsWith(`${item.url}/`)
+                    }
                     render={<Link href={item.url} />}
                   >
                     <item.icon />
