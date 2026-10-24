@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   Apple,
+  BicepsFlexed,
   BookOpen,
   ClipboardList,
   Dumbbell,
@@ -34,6 +35,7 @@ const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Biometrics", url: "/biometrics", icon: HeartPulse },
   { title: "Workouts", url: "/workouts", icon: Dumbbell },
+  { title: "Exercises", url: "/exercises", icon: BicepsFlexed },
   { title: "Food", url: "/food", icon: Apple },
   { title: "Daily Log", url: "/daily-log", icon: ClipboardList },
   { title: "Resources", url: "/resources", icon: BookOpen },
