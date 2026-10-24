@@ -1,8 +1,10 @@
 import { format } from "date-fns";
+import { AlertTriangle } from "lucide-react";
 import { requireUserId } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import {
   Card,
+  CardAction,
   CardContent,
   CardHeader,
   CardTitle,
@@ -18,7 +20,16 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { FoodForm } from "./food-form";
+import { ImportDialog } from "./import-dialog";
+import { BarcodeDialog } from "./barcode-dialog";
+import { QuickAddBar } from "./quick-add-bar";
 import { DeleteEntryButton } from "./delete-entry-button";
+import { getFrequentFoods } from "./actions";
+import {
+  TARGET_METRICS,
+  evaluateMetric,
+  type NutritionTargetValues,
+} from "@/lib/nutrition-targets";
 
 const mealStyles: Record<string, { label: string; className: string }> = {
   BREAKFAST: {
@@ -42,11 +53,25 @@ const mealStyles: Record<string, { label: string; className: string }> = {
 export default async function FoodPage() {
   const userId = await requireUserId();
 
-  const entries = await prisma.foodEntry.findMany({
-    where: { userId },
-    orderBy: { date: "desc" },
-    take: 200,
-  });
+  const [entries, target, frequentFoods] = await Promise.all([
+    prisma.foodEntry.findMany({
+      where: { userId },
+      orderBy: { date: "desc" },
+      take: 200,
+    }),
+    prisma.nutritionTarget.findUnique({ where: { userId } }),
+    getFrequentFoods(8),
+  ]);
+
+  const targets: NutritionTargetValues = {
+    caloriesMax: target?.caloriesMax ?? null,
+    fatMaxG: target?.fatMaxG ?? null,
+    saturatedFatMaxG: target?.saturatedFatMaxG ?? null,
+    carbsMaxG: target?.carbsMaxG ?? null,
+    proteinMinG: target?.proteinMinG ?? null,
+    fiberMinG: target?.fiberMinG ?? null,
+    alcoholMaxG: target?.alcoholMaxG ?? null,
+  };
 
   const groups = new Map<string, typeof entries>();
   for (const entry of entries) {
@@ -63,8 +88,14 @@ export default async function FoodPage() {
           <h1 className="font-heading text-2xl font-semibold">Food</h1>
           <p className="text-sm text-muted-foreground">Log meals and track daily macros.</p>
         </div>
-        <FoodForm />
+        <div className="flex items-center gap-2">
+          <ImportDialog />
+          <BarcodeDialog />
+          <FoodForm />
+        </div>
       </div>
+
+      <QuickAddBar foods={frequentFoods} />
 
       {entries.length === 0 ? (
         <Card>
@@ -74,19 +105,49 @@ export default async function FoodPage() {
         </Card>
       ) : (
         Array.from(groups.entries()).map(([day, dayEntries]) => {
-          const totalCalories = dayEntries.reduce((s, e) => s + (e.calories ?? 0), 0);
-          const totalProtein = dayEntries.reduce((s, e) => s + (e.proteinG ?? 0), 0);
-          const totalCarbs = dayEntries.reduce((s, e) => s + (e.carbsG ?? 0), 0);
-          const totalFat = dayEntries.reduce((s, e) => s + (e.fatG ?? 0), 0);
+          const totals = {
+            calories: dayEntries.reduce((s, e) => s + (e.calories ?? 0), 0),
+            proteinG: dayEntries.reduce((s, e) => s + (e.proteinG ?? 0), 0),
+            carbsG: dayEntries.reduce((s, e) => s + (e.carbsG ?? 0), 0),
+            fatG: dayEntries.reduce((s, e) => s + (e.fatG ?? 0), 0),
+            saturatedFatG: dayEntries.reduce((s, e) => s + (e.saturatedFatG ?? 0), 0),
+            fiberG: dayEntries.reduce((s, e) => s + (e.fiberG ?? 0), 0),
+            alcoholG: dayEntries.reduce((s, e) => s + (e.alcoholG ?? 0), 0),
+          };
+
+          const flags = TARGET_METRICS.map((metric) => ({
+            metric,
+            status: evaluateMetric(totals[metric.key], targets[metric.targetField], metric.direction),
+          })).filter((f) => f.status === "over" || f.status === "under");
+          const flaggedKeys = new Set(flags.map((f) => f.metric.key));
+
+          const macroClass = (key: (typeof TARGET_METRICS)[number]["key"]) =>
+            flaggedKeys.has(key) ? "font-medium text-destructive" : undefined;
 
           return (
             <Card key={day}>
               <CardHeader>
                 <CardTitle>{format(dayEntries[0].date, "EEEE, MMMM d")}</CardTitle>
                 <CardDescription>
-                  {totalCalories} cal &middot; {totalProtein.toFixed(0)}g protein &middot;{" "}
-                  {totalCarbs.toFixed(0)}g carbs &middot; {totalFat.toFixed(0)}g fat
+                  <span className={macroClass("calories")}>{totals.calories} cal</span> &middot;{" "}
+                  <span className={macroClass("proteinG")}>{totals.proteinG.toFixed(0)}g protein</span>{" "}
+                  &middot; <span className={macroClass("carbsG")}>{totals.carbsG.toFixed(0)}g carbs</span>{" "}
+                  &middot; <span className={macroClass("fatG")}>{totals.fatG.toFixed(0)}g fat</span>{" "}
+                  &middot;{" "}
+                  <span className={macroClass("saturatedFatG")}>
+                    {totals.saturatedFatG.toFixed(0)}g sat fat
+                  </span>{" "}
+                  &middot; <span className={macroClass("fiberG")}>{totals.fiberG.toFixed(0)}g fiber</span>{" "}
+                  &middot;{" "}
+                  <span className={macroClass("alcoholG")}>{totals.alcoholG.toFixed(0)}g alcohol</span>
                 </CardDescription>
+                {flags.length > 0 && (
+                  <CardAction>
+                    <Badge variant="destructive">
+                      <AlertTriangle /> {flags.length} flag{flags.length === 1 ? "" : "s"}
+                    </Badge>
+                  </CardAction>
+                )}
               </CardHeader>
               <CardContent>
                 <Table>
@@ -98,6 +159,7 @@ export default async function FoodPage() {
                       <TableHead>Protein</TableHead>
                       <TableHead>Carbs</TableHead>
                       <TableHead>Fat</TableHead>
+                      <TableHead>Fiber</TableHead>
                       <TableHead className="w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -114,6 +176,7 @@ export default async function FoodPage() {
                         <TableCell>{entry.proteinG ?? "—"}</TableCell>
                         <TableCell>{entry.carbsG ?? "—"}</TableCell>
                         <TableCell>{entry.fatG ?? "—"}</TableCell>
+                        <TableCell>{entry.fiberG ?? "—"}</TableCell>
                         <TableCell>
                           <DeleteEntryButton id={entry.id} />
                         </TableCell>

@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "FoodEntry" ADD COLUMN     "alcoholG" DOUBLE PRECISION,
+ADD COLUMN     "fiberG" DOUBLE PRECISION,
+ADD COLUMN     "saturatedFatG" DOUBLE PRECISION;

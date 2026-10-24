@@ -11,6 +11,7 @@ import {
   HeartPulse,
   LayoutDashboard,
   LogOut,
+  Settings,
 } from "lucide-react";
 
 import { signOutAction } from "@/app/(app)/actions";
@@ -36,6 +37,7 @@ const navItems = [
   { title: "Food", url: "/food", icon: Apple },
   { title: "Daily Log", url: "/daily-log", icon: ClipboardList },
   { title: "Resources", url: "/resources", icon: BookOpen },
+  { title: "Admin", url: "/admin", icon: Settings },
 ];
 
 export function AppSidebar({

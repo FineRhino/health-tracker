@@ -20,14 +20,15 @@ model User {
   image         String?
   passwordHash  String?
 
-  accounts  Account[]
-  sessions  Session[]
+  accounts Account[]
+  sessions Session[]
 
   biometricEntries    BiometricEntry[]
   workouts            Workout[]
   foodEntries         FoodEntry[]
   dailyLogs           DailyLog[]
   passwordResetTokens PasswordResetToken[]
+  nutritionTarget     NutritionTarget?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -97,31 +98,31 @@ enum MealType {
 }
 
 model BiometricEntry {
-  id     String   @id @default(cuid())
+  id     String @id @default(cuid())
   userId String
-  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   recordedAt DateTime @default(now())
 
-  weightLbs                Float?
-  bmi                       Float?
-  bodyFatPercent            Float?
-  bodyFatMassLbs            Float?
-  leanMassLbs               Float?
-  leanMassPercent           Float?
-  subcutaneousFatMassLbs    Float?
-  subcutaneousFatPercent    Float?
-  visceralFatIndex          Float?
-  skeletalMuscleMassLbs     Float?
-  skeletalMassLbs           Float?
-  boneMineralContentLbs     Float?
-  bodyWaterPercent          Float?
-  extracellularWaterLbs     Float?
-  intracellularWaterLbs     Float?
-  mineralMassLbs            Float?
-  basalMetabolicRate        Float?
-  metabolicAge              Int?
-  bodyCellMassLbs           Float?
+  weightLbs              Float?
+  bmi                    Float?
+  bodyFatPercent         Float?
+  bodyFatMassLbs         Float?
+  leanMassLbs            Float?
+  leanMassPercent        Float?
+  subcutaneousFatMassLbs Float?
+  subcutaneousFatPercent Float?
+  visceralFatIndex       Float?
+  skeletalMuscleMassLbs  Float?
+  skeletalMassLbs        Float?
+  boneMineralContentLbs  Float?
+  bodyWaterPercent       Float?
+  extracellularWaterLbs  Float?
+  intracellularWaterLbs  Float?
+  mineralMassLbs         Float?
+  basalMetabolicRate     Float?
+  metabolicAge           Int?
+  bodyCellMassLbs        Float?
 
   notes String?
 
@@ -136,13 +137,13 @@ model Workout {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  date             DateTime    @default(now())
-  type             WorkoutType @default(STRENGTH)
-  name             String
-  durationMinutes  Int?
-  caloriesBurned   Int?
-  distanceMiles    Float?
-  notes            String?
+  date            DateTime    @default(now())
+  type            WorkoutType @default(STRENGTH)
+  name            String
+  durationMinutes Int?
+  caloriesBurned  Int?
+  distanceMiles   Float?
+  notes           String?
 
   exercises WorkoutExercise[]
 
@@ -171,14 +172,17 @@ model FoodEntry {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  date     DateTime @default(now())
-  mealType MealType @default(BREAKFAST)
-  name     String
-  calories Int?
-  proteinG Float?
-  carbsG   Float?
-  fatG     Float?
-  notes    String?
+  date          DateTime @default(now())
+  mealType      MealType @default(BREAKFAST)
+  name          String
+  calories      Int?
+  proteinG      Float?
+  carbsG        Float?
+  fatG          Float?
+  saturatedFatG Float?
+  fiberG        Float?
+  alcoholG      Float?
+  notes         String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -211,4 +215,21 @@ model DailyLog {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, date])
+}
+
+model NutritionTarget {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  caloriesMax      Float?
+  fatMaxG          Float?
+  saturatedFatMaxG Float?
+  carbsMaxG        Float?
+  proteinMinG      Float?
+  fiberMinG        Float?
+  alcoholMaxG      Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
