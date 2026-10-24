@@ -12,6 +12,7 @@ import {
   HeartPulse,
   LayoutDashboard,
   LogOut,
+  Pill,
   Settings,
 } from "lucide-react";
 
@@ -38,6 +39,7 @@ const navItems = [
   { title: "Exercises", url: "/exercises", icon: BicepsFlexed },
   { title: "Food", url: "/food", icon: Apple },
   { title: "Daily Log", url: "/daily-log", icon: ClipboardList },
+  { title: "Supplements", url: "/supplements", icon: Pill },
   { title: "Resources", url: "/resources", icon: BookOpen },
   { title: "Admin", url: "/admin", icon: Settings },
 ];
