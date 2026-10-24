@@ -92,17 +92,30 @@ export default function ResourcesPage() {
           {links.length === 0 ? (
             <EmptyState label="No links yet." />
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {links.map((link) => (
-                <a key={link.url} href={link.url} target="_blank" rel="noreferrer">
-                  <Card className="h-full transition-colors hover:bg-muted/50">
-                    <CardHeader>
-                      <CardTitle>{link.title}</CardTitle>
-                      <CardDescription>{link.description}</CardDescription>
-                    </CardHeader>
-                  </Card>
-                </a>
-              ))}
+            <div className="flex flex-col gap-3">
+              <div>
+                <h2 className="font-heading text-base font-semibold">Latest research</h2>
+                <p className="text-sm text-muted-foreground">
+                  Recent studies and reporting on fitness, worth skimming when planning a routine.
+                </p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {links.map((link) => (
+                  <a key={link.url} href={link.url} target="_blank" rel="noreferrer">
+                    <Card className="h-full transition-colors hover:bg-muted/50">
+                      <CardHeader>
+                        <CardTitle>{link.title}</CardTitle>
+                        <CardDescription>{link.description}</CardDescription>
+                      </CardHeader>
+                      {link.source && (
+                        <CardContent>
+                          <Badge variant="outline">{link.source}</Badge>
+                        </CardContent>
+                      )}
+                    </Card>
+                  </a>
+                ))}
+              </div>
             </div>
           )}
         </TabsContent>
